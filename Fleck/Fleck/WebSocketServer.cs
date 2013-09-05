@@ -18,7 +18,7 @@ namespace Fleck
         public WebSocketServer(int port, string location)
         {
             var uri = new Uri(location);
-
+            
             Port = uri.Port > 0 && uri.OriginalString.IndexOf(uri.Port.ToString()) >= 0 ? uri.Port : port; 
             Location = location;
             _scheme = uri.Scheme;

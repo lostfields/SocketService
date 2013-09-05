@@ -21,6 +21,7 @@ namespace SocketService
        
         private Fleck.WebSocketServer _server;
 
+        private Boolean _isThreading = false;
         private Boolean _isPaused = false;
 
         private struct BufferItem
@@ -106,7 +107,8 @@ namespace SocketService
 
                         this._broadcastBuffer.Enqueue(new BufferItem(socket.ConnectionInfo.Id, message));
 
-                        (new System.Threading.Thread(this.BroadcastMessage)).Start();
+                        if(System.Threading.Monitor.IsEntered(SocketService._broadcastLock) == false) //this._isThreading == false
+                            (new System.Threading.Thread(this.BroadcastMessage)).Start();
                     };
             });
         }
@@ -115,6 +117,8 @@ namespace SocketService
         {
             lock(SocketService._broadcastLock)
             {
+                this._isThreading = true;
+
                 Fleck.IWebSocketConnection[] connections;
                 System.Collections.Generic.Stack<Fleck.IWebSocketConnection> unavailable = null;
 
@@ -153,6 +157,8 @@ namespace SocketService
                 }
 
                 this._broadcastTimestamp = DateTime.UtcNow;
+
+                this._isThreading = false;
             }
         }
 
